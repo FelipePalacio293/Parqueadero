@@ -184,12 +184,17 @@ Salida (diccionario):
 def ingresarVehiculo(usuarios, usuariosNoRegistrados, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso):
     placa = input("Ingrese la placa del vehiculo \n")
     [registrada, posicion] = revisarPlaca(usuarios, placa)
+    # Si el vehículo está dentro del diccionario usuarios, y no está dentro del parqueadero 
+    # se aprueba el acceso.
     dentroDelParqueadero = revisarRegistro(placa, asociarVehiculoConPiso.keys())
     if (registrada) and (not dentroDelParqueadero):  
         [pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso] = ubicarVehiculo(usuarios, 3, 2 ,tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, placa, asociarVehiculoConPiso)
+    # Si el vehículo no está dentro del diccionario usuarios, y no está dentro del parqueadero 
+    # se aprueba el acceso
     elif (not dentroDelParqueadero):
         usuariosNoRegistrados = registrarVehiculoDiario(placa, usuariosNoRegistrados)
         [pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso] = ubicarVehiculo(usuariosNoRegistrados, 0, 3, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, placa, asociarVehiculoConPiso)
+    # Si el vehículo
     else:
         print("Este vehiculo se encuentra dentro del paqueadero")
     return pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso
@@ -207,7 +212,16 @@ Salida (diccionario):
 def registrarVehiculoDiario(placa, usuariosNoRegistrados):
     # usuariosNoRegistrados es un diccionario que contiene todos los usuarios
     # que llegan al parqueadero y no estan registrados en el diccionario usuarios
-    tipoDeVehiculo = input("Ingrese el tipo de vehiculo: \n")
+    tipoDeVehiculo =  int(input("Ingrese el tipo de vehículo: \n1. Automóvil\n2. Automóvil Eléctrico\n3. Motocicleta\n4. Discapacitado\n"))
+    if tipoDeVehiculo == 1:
+        tipoDeVehiculo = "Automóvil"
+    elif tipoDeVehiculo == 2:
+        tipoDeVehiculo = "Automóvil Eléctrico"
+    elif tipoDeVehiculo == 3:
+        tipoDeVehiculo = "Motocicleta"
+    elif tipoDeVehiculo == 4:
+        tipoDeVehiculo = "Discapacitado"
+
     usuariosNoRegistrados["usuarios"].append([placa, tipoDeVehiculo, "Diario", "Visitante"])
     return usuariosNoRegistrados
 
@@ -228,8 +242,8 @@ def ubicarVehiculo(usuarios, posicion, posicionTipoUsuario, tipoDeParqueaderos, 
     size = len(usuarios["usuarios"])
     buscarDos = 0
     buscar = 1
-    #Bucle que se encarga de saber que tipo de vehículo tiene el usuario, le asigna estos valores a una o unas variables
-    #dependiendo si el vehículo puede estar en dos tipos de posiciones.
+    # Bucle que se encarga de saber que tipo de vehículo tiene el usuario, le asigna estos valores a una o unas variables
+    # dependiendo si el vehículo puede estar en dos tipos de posiciones.
     for y in range(size):
         if usuarios["usuarios"][y][posicion] == placa:
             if usuarios["usuarios"][y][posicion + 1] == "Automóvil":
@@ -247,13 +261,18 @@ def ubicarVehiculo(usuarios, posicion, posicionTipoUsuario, tipoDeParqueaderos, 
                 buscarDos = 4
                 break
 
-    #Variable que contiene la cantidad de posiciones de cada piso.
+    # Variable que contiene la cantidad de posiciones de cada piso.
+    # Se valida si la cantidad de posiciones es mayor a 0 en algun piso.
+
     cantidadDePosiciones = posicionesDesocupadas(buscar, buscarDos, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz)
-    
-    #Se le pide al usuario en que piso desea parquear mostrando el total de posiciones disponibles para su vehículo
-    #en ese piso. 
-    #Se válida que el piso en esa posición tenga mínimo una posición disponible. En caso de que no, se vuelve a 
-    #imprime un error y se vuelve a pedir el piso.
+    if sum(cantidadDePosiciones) == 0:
+        print("No hay posiciones disponibles en el parqueadero para su vehículo.")
+        return pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso
+
+    # Se le pide al usuario en que piso desea parquear mostrando el total de posiciones disponibles para su vehículo
+    # en ese piso. 
+    # Se válida que el piso en esa posición tenga mínimo una posición disponible. En caso de que no, se vuelve a 
+    # imprime un error y se vuelve a pedir el piso.
     while True:
         piso = int(input(f"Ingrese el piso donde desea parquear: "
                         f"\n1. Piso 1 (Posiciones desocupadas: {cantidadDePosiciones[0]})" 
@@ -267,7 +286,7 @@ def ubicarVehiculo(usuarios, posicion, posicionTipoUsuario, tipoDeParqueaderos, 
             break
         print("No hay sitios disponibles en este piso, introduzca otro")
 
-    #Dependiendo del piso elegido por el usuario, se llama la función de cambiar el estado del piso.
+    # Dependiendo del piso elegido por el usuario, se llama la función de cambiar el estado del piso.
 
     if piso == 1:
         [pisoUnoMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso1"], placa, buscar, buscarDos, pisoUnoMatriz, asociarVehiculoConPiso, "Piso1", usuarios["usuarios"][y][posicion + 1], usuarios["usuarios"][y][posicionTipoUsuario])
