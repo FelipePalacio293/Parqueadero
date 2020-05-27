@@ -13,8 +13,7 @@ def menu():
         if x == 1:
             usuarios = registrarVehiculo(usuarios)
         elif x == 2:
-            usuariosTemp = cargaDeArchivos(1)
-            usuarios["usuarios"] += usuariosTemp["usuarios"]
+            usuarios = cargaDeArchivos(1)
         elif x == 3:
             tipoDeParqueaderos = cargaDeArchivos(2)
         elif x == 4:
@@ -23,8 +22,6 @@ def menu():
             [usuariosNoRegistrados, asociarVehiculoConPiso, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz] = retirarVehiculo(usuarios, usuariosNoRegistrados, asociarVehiculoConPiso, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz)
         elif x == 6:
             estadisticasPorPiso(pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz)
-            estadisticasPorTipoDeUsuario(asociarVehiculoConPiso)
-            estadisticasPorTipoDeVehiculo(asociarVehiculoConPiso)
         x = int(input("Opciones: \n 1. Registrar Vehiculo. \n 2. Cargar Archivos usuarios \n 3. Cargar archivo parqueaderos \n 4. Ingresar vehiculo\n 5. Salida de vehículo.\n 6. Generar estadísticas.\n -1 Para terminar \n"))
 
 def crearMatricesPisos():
@@ -98,7 +95,7 @@ def cargaDeArchivos(tipoDeArchivo):
             return usuarios
     elif tipoDeArchivo == 2:
         with open("tiposParqueaderos.json", "r") as file:
-            tipoDeParqueaderos = json.load(file)
+            tipoDeParqueaderos = json.load(file, encoding="utf-8")
             return tipoDeParqueaderos
 
 def registrarVehiculo(usuarios):
@@ -124,13 +121,13 @@ def registrarVehiculo(usuarios):
 
 def ingresarVehiculo(usuarios, usuariosNoRegistrados, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso):
     placa = input("Ingrese la placa del vehiculo \n")
-    [registrada, posicion] = revisarPlaca(usuarios, placa)
+    [registrada, posicion] = revisarPlaca(usuarios, placa, 3)
     dentroDelParqueadero = revisarRegistro(placa, asociarVehiculoConPiso.keys())
     if (registrada) and (not dentroDelParqueadero):  
-        [pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso] = ubicarVehiculo(usuarios, 3, 2 ,tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, placa, asociarVehiculoConPiso)
+        [pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso] = ubicarVehiculo(usuarios, 3, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, placa, asociarVehiculoConPiso)
     elif (not dentroDelParqueadero):
         usuariosNoRegistrados = registrarVehiculoDiario(placa, usuariosNoRegistrados)
-        [pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso] = ubicarVehiculo(usuariosNoRegistrados, 0, 3, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, placa, asociarVehiculoConPiso)
+        [pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso] = ubicarVehiculo(usuariosNoRegistrados, 0, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, placa, asociarVehiculoConPiso)
     else:
         print("Este vehiculo se encuentra dentro del paqueadero")
     return pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso
@@ -140,7 +137,7 @@ def registrarVehiculoDiario(placa, usuariosNoRegistrados):
     usuariosNoRegistrados["usuarios"].append([placa, tipoDeVehiculo, "Diario", "Visitante"])
     return usuariosNoRegistrados
 
-def ubicarVehiculo(usuarios, posicion, posicionTipoUsuario, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, placa, asociarVehiculoConPiso):
+def ubicarVehiculo(usuarios, posicion, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, placa, asociarVehiculoConPiso):
     size = len(usuarios["usuarios"])
     buscarDos = 0
     buscar = 1
@@ -148,18 +145,14 @@ def ubicarVehiculo(usuarios, posicion, posicionTipoUsuario, tipoDeParqueaderos, 
         if usuarios["usuarios"][y][posicion] == placa:
             if usuarios["usuarios"][y][posicion + 1] == "Automóvil":
                 buscar = 1
-                break
             elif usuarios["usuarios"][y][posicion + 1] == "Automóvil Eléctrico":
                 buscar = 1
                 buscarDos = 2
-                break
             elif usuarios["usuarios"][y][posicion + 1] == "Motocicleta":
                 buscar = 3
-                break
             elif usuarios["usuarios"][y][posicion + 1] == "Discapacitado":
                 buscar = 1
                 buscarDos = 4
-                break
 
     cantidadDePosiciones = posicionesDesocupadas(buscar, buscarDos, tipoDeParqueaderos, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz)
     
@@ -177,21 +170,21 @@ def ubicarVehiculo(usuarios, posicion, posicionTipoUsuario, tipoDeParqueaderos, 
         print("No hay sitios disponibles en este piso, introduzca otro")
 
     if piso == 1:
-        [pisoUnoMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso1"], placa, buscar, buscarDos, pisoUnoMatriz, asociarVehiculoConPiso, "Piso1", usuarios["usuarios"][y][posicion + 1], usuarios["usuarios"][y][posicionTipoUsuario])
+        [pisoUnoMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso1"], placa, buscar, buscarDos, pisoUnoMatriz, asociarVehiculoConPiso, "Piso1")
     elif piso == 2:
-        [pisoDosMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso2"], placa, buscar, buscarDos, pisoDosMatriz, asociarVehiculoConPiso, "Piso2", usuarios["usuarios"][y][posicion + 1], usuarios["usuarios"][y][posicionTipoUsuario])
+        [pisoDosMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso2"], placa, buscar, buscarDos, pisoDosMatriz, asociarVehiculoConPiso, "Piso2")
     elif piso == 3:
-        [pisoTresMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso3"], placa, buscar, buscarDos, pisoTresMatriz, asociarVehiculoConPiso, "Piso3", usuarios["usuarios"][y][posicion + 1], usuarios["usuarios"][y][posicionTipoUsuario])
+        [pisoTresMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso3"], placa, buscar, buscarDos, pisoTresMatriz, asociarVehiculoConPiso, "Piso3")
     elif piso == 4:
-        [pisoCuatroMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso4"], placa, buscar, buscarDos, pisoCuatroMatriz, asociarVehiculoConPiso, "Piso4", usuarios["usuarios"][y][posicion + 1], usuarios["usuarios"][y][posicionTipoUsuario])
+        [pisoCuatroMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso4"], placa, buscar, buscarDos, pisoCuatroMatriz, asociarVehiculoConPiso, "Piso4")
     elif piso == 5:
-        [pisoCincoMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso5"], placa, buscar, buscarDos, pisoCincoMatriz, asociarVehiculoConPiso, "Piso5", usuarios["usuarios"][y][posicion + 1], usuarios["usuarios"][y][posicionTipoUsuario])
+        [pisoCincoMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso5"], placa, buscar, buscarDos, pisoCincoMatriz, asociarVehiculoConPiso, "Piso5")
     elif piso == 6:
-        [pisoSeisMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso6"], placa, buscar, buscarDos, pisoSeisMatriz, asociarVehiculoConPiso, "Piso6", usuarios["usuarios"][y][posicion + 1], usuarios["usuarios"][y][posicionTipoUsuario])
+        [pisoSeisMatriz, asociarVehiculoConPiso] = cambiarEstadoAOcupado(tipoDeParqueaderos["Piso6"], placa, buscar, buscarDos, pisoSeisMatriz, asociarVehiculoConPiso, "Piso6")
 
     return pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz, asociarVehiculoConPiso
 
-def cambiarEstadoAOcupado(infoPiso, placa, buscar, buscarDos, piso, asociarVehiculoConPiso, numPiso, tipoDeVehiculo, tipoDeUsuario):
+def cambiarEstadoAOcupado(infoPiso, placa, buscar, buscarDos, piso, asociarVehiculoConPiso, numPiso):
     print("Las Posiciones disponibles se representan con un 0")
     while True:
         for y in range(len(piso)):
@@ -206,7 +199,7 @@ def cambiarEstadoAOcupado(infoPiso, placa, buscar, buscarDos, piso, asociarVehic
         columna = int(input("Ingrese la columna donde desea ubicar su vehículo: \n"))
         if (infoPiso[fila][columna] == buscar or infoPiso[fila][columna] == buscarDos) and piso[fila][columna] == "0":
             piso[fila][columna] = "X"
-            asociarVehiculoConPiso[placa] = [numPiso, fila, columna, tipoDeUsuario, tipoDeVehiculo]
+            asociarVehiculoConPiso[placa] = [numPiso, fila, columna]
             print("Se ha registrado su vehículo.")
             return piso, asociarVehiculoConPiso
         else:
@@ -235,28 +228,26 @@ def posicionesDesocupadas(buscar, buscarDos, tipoDeParqueaderos, pisoUnoMatriz, 
 
 def retirarVehiculo(usuarios, usuariosNoRegistrados, asociarVehiculoConPiso, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz):
     placa = input("Ingrese la placa del vehículo que se va a retirar: \n")
-    if not revisarRegistro(placa, asociarVehiculoConPiso.keys()):
-        print("El vehículo no se encuentra dentro del parqueadero.")
-        return usuariosNoRegistrados, asociarVehiculoConPiso, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz
     horas = eval(input("Ingrese el numero de horas que permaneció el vehículo en el parqueadero: \n")) 
 
     if type(horas) != int:
         horas = int(horas) + 1
-    [registrada, posicion] = revisarPlaca(usuariosNoRegistrados, placa)
+
+    [registrada, posicion] = revisarPlaca(usuariosNoRegistrados, placa, 0)
     if registrada:
         posiciones = asociarVehiculoConPiso[placa]
         
         [pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz] = quitarVehiculo(posiciones, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz)
         
         asociarVehiculoConPiso.pop(placa)
-        usuariosNoRegistrados["usuarios"].pop(posicion)
+        usuariosNoRegistrados.pop(placa)
 
         valorAPagar = 3000 * horas
         print("El valor a pagar es ", valorAPagar)
 
         return usuariosNoRegistrados, asociarVehiculoConPiso, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz
     
-    [registrada, posicion] = revisarPlaca(usuarios, placa)
+    [registrada, posicion] = revisarPlaca(usuarios, placa, 3)
 
     if not registrada:
         return usuariosNoRegistrados, asociarVehiculoConPiso, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz
@@ -265,7 +256,6 @@ def retirarVehiculo(usuarios, usuariosNoRegistrados, asociarVehiculoConPiso, pis
     [pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz] = quitarVehiculo(posiciones, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz)
 
     if usuarios["usuarios"][posicion][5] == "Mensualidad":
-        asociarVehiculoConPiso.pop(placa)
         print("El usuarios tiene mensualidad. \n No se genera cobro.")
         return usuariosNoRegistrados, asociarVehiculoConPiso, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz
     if usuarios["usuarios"][posicion][2] == "Estudiante":
@@ -296,16 +286,17 @@ def quitarVehiculo(posiciones, pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pis
 
     return pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz
 
-def revisarPlaca(usuarios, placa):
+def revisarPlaca(usuarios, placa, posicion):
     size = len(usuarios["usuarios"])
     for y in range(size):
-        if placa in usuarios["usuarios"][y] :
+        if usuarios["usuarios"][y][posicion] == placa:
             return True, y
     return False, 0
 
 def revisarRegistro(placa, llaves):
-    if placa in llaves:
-        return True
+    for x in llaves:
+        if placa == x:
+            return True
     return False
 
 def estadisticasPorPiso(pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatroMatriz, pisoCincoMatriz, pisoSeisMatriz):
@@ -345,46 +336,7 @@ def estadisticasPorPiso(pisoUnoMatriz, pisoDosMatriz, pisoTresMatriz, pisoCuatro
     archivoTexto.close()
     return
 
-def estadisticasPorTipoDeUsuario(asociarVehiculoConPiso):
-    keys = asociarVehiculoConPiso.keys()
-    cantidadDeVehiculos = [0, 0, 0, 0]
-    for x in keys:
-        if asociarVehiculoConPiso[x][3] == "Profesor":
-            cantidadDeVehiculos[0] += 1
-        elif asociarVehiculoConPiso[x][3] == "Estudiante":
-            cantidadDeVehiculos[1] += 1
-        elif asociarVehiculoConPiso[x][3] == "Personal Administrativo":
-            cantidadDeVehiculos[2] += 1
-        elif asociarVehiculoConPiso[x][3] == "Visitante":
-            cantidadDeVehiculos[3] += 1
-
-    archivoTexto = open("estadisticasTiposDeUsuarios.txt", "w")
-    archivoTexto.write("Profesor " + str(cantidadDeVehiculos[0]) + "\n")
-    archivoTexto.write("Estudiante " + str(cantidadDeVehiculos[1]) + "\n")
-    archivoTexto.write("Personal administrativo " + str(cantidadDeVehiculos[2])+ "\n")
-    archivoTexto.write("Visitante " + str(cantidadDeVehiculos[3]) + "\n")
-    archivoTexto.close()
-    return
-
-def estadisticasPorTipoDeVehiculo(asociarVehiculoConPiso):
-    keys = asociarVehiculoConPiso.keys()
-    cantidadDeVehiculos = [0, 0, 0, 0]
-    for x in keys:
-        if asociarVehiculoConPiso[x][4] == "Automóvil":
-            cantidadDeVehiculos[0] += 1
-        elif asociarVehiculoConPiso[x][4] == "Automóvil Eléctrico":
-            cantidadDeVehiculos[1] += 1
-        elif asociarVehiculoConPiso[x][4] == "Motocicleta":
-            cantidadDeVehiculos[2] += 1
-        elif asociarVehiculoConPiso[x][4] == "Discapacitado":
-            cantidadDeVehiculos[3] += 1
-
-    archivoTexto = open("estadisticasTiposDeVehiculo.txt", "w", encoding="utf-8")
-    archivoTexto.write("Hay un total de " + str(cantidadDeVehiculos[0]) + " Automóviles parqueados\n")
-    archivoTexto.write("Hay un total de " + str(cantidadDeVehiculos[1]) + " Automóviles Eléctricos parqueados\n")
-    archivoTexto.write("Hay un total de " + str(cantidadDeVehiculos[2]) + " Motocicletas parqueados\n")
-    archivoTexto.write("Hay un total de " + str(cantidadDeVehiculos[3]) + " vehículos de personas discapactidas parqueados")
-    archivoTexto.close()
-    return 
+def estadisticasPorTipoDeUsuario():
+    pass
 
 menu()
